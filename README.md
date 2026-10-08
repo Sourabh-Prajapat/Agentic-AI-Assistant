@@ -1,8 +1,8 @@
 # 🤖 Agentic AI Assistant
 
-A beginner-friendly **Agentic AI project** built with Python and the **Google Gemini API**, demonstrating how an LLM can select and use external tools to perform tasks.
+A beginner-friendly **Agentic AI project** built with Python and the **Google Gemini API**, demonstrating how an LLM can understand user requests, select appropriate tools, and use their results to generate responses.
 
-The project currently focuses on **LLM Tool Calling** with multiple Python functions such as a calculator and student information tools.
+The project currently focuses on **LLM Tool Calling**, **multiple tool selection**, and **automatic function calling** using the Google GenAI SDK.
 
 ---
 
@@ -11,6 +11,7 @@ The project currently focuses on **LLM Tool Calling** with multiple Python funct
 * 🤖 Gemini-powered AI assistant
 * 🛠️ LLM tool calling
 * 🔀 Multiple tool selection
+* 🔄 Automatic function calling
 * 🧮 Mathematical calculations
 * 🎓 Student information retrieval
 * 📊 Student attendance retrieval
@@ -21,36 +22,38 @@ The project currently focuses on **LLM Tool Calling** with multiple Python funct
 
 ## 🧠 How It Works
 
-The assistant receives a user's question and provides Gemini with a set of available tools.
+The assistant sends the user's question to Gemini along with a set of available Python tools.
 
-Gemini determines whether a tool is required and selects the appropriate tool based on the user's request.
+Gemini understands the request and determines whether a tool is required. If a tool is needed, the Google GenAI SDK handles the function-calling process, executes the appropriate Python function, and provides the result back to Gemini.
 
 ```text
-                 User
-                   │
-                   ▼
-              Gemini LLM
-                   │
-           Understands Request
-                   │
-                   ▼
-          Selects Appropriate Tool
-                   │
-        ┌──────────┼──────────┐
-        ▼          ▼          ▼
-   Calculator   Student     Attendance
-                 Info         Tool
-        │          │          │
-        └──────────┼──────────┘
-                   ▼
-              Tool Result
-                   │
-                   ▼
-              Gemini LLM
-                   │
-                   ▼
-             Final Answer
+                         User
+                           │
+                           ▼
+                     Gemini LLM
+                           │
+                    Understands Request
+                           │
+                           ▼
+                   Selects Appropriate Tool
+                           │
+             ┌─────────────┼─────────────┐
+             ▼             ▼             ▼
+        Calculator    Student Info    Attendance
+             │             │             │
+             └─────────────┼─────────────┘
+                           │
+                           ▼
+                      Tool Result
+                           │
+                           ▼
+                     Gemini LLM
+                           │
+                           ▼
+                     Final Answer
 ```
+
+The tool-calling process is handled automatically by the **Google GenAI SDK** in the current implementation.
 
 ---
 
@@ -75,6 +78,8 @@ Calculator → 1000
 Gemini → Final response
 ```
 
+---
+
 ### 🎓 Student Information
 
 Retrieves basic information about a student, including:
@@ -93,6 +98,8 @@ Tool → Mechanical Engineering
 Gemini → Final response
 ```
 
+---
+
 ### 📊 Student Attendance
 
 Retrieves the attendance percentage of a student.
@@ -106,6 +113,51 @@ Gemini → get_student_attendance("Sourabh")
 Tool → 87%
 Gemini → Final response
 ```
+
+---
+
+## 🔄 Multi-Tool Workflow
+
+The assistant can handle queries that require information from a tool and further processing.
+
+For example:
+
+```text
+User:
+How many percentage points does Sourabh need to reach 95%?
+```
+
+Conceptually, the workflow is:
+
+```text
+User Query
+     │
+     ▼
+Gemini
+     │
+     ▼
+get_student_attendance("Sourabh")
+     │
+     ▼
+87%
+     │
+     ▼
+Gemini
+     │
+     ▼
+calculator(95, 87, "subtract")
+     │
+     ▼
+8
+     │
+     ▼
+Gemini
+     │
+     ▼
+Final Answer
+```
+
+The LLM determines which tools are required based on the user's request, while the Google GenAI SDK manages the function-calling interaction.
 
 ---
 
@@ -130,6 +182,7 @@ Agentic AI Assistant/
 * **Google Gemini API**
 * **Google GenAI SDK**
 * **LLM Tool Calling**
+* **Automatic Function Calling**
 * **Python Functions**
 
 ---
@@ -203,7 +256,15 @@ What branch is Sourabh studying in?
 ```
 
 ```text
-What is Nidhi’s attendance?
+Tell me about Sourabh.
+```
+
+```text
+How many percentage points does Sourabh need to reach 95%?
+```
+
+```text
+What is Nidhi's attendance?
 ```
 
 The assistant determines which available tool is appropriate for the request.
@@ -218,7 +279,9 @@ This project was built to understand the fundamentals of **Agentic AI and LLM To
 * How tools are defined using Python functions
 * How function parameters are exposed to an LLM
 * How an LLM selects an appropriate tool
-* How tool results can be used to generate a final response
+* How the Google GenAI SDK handles automatic function calling
+* How tool results are returned to the LLM
+* How multiple tools can be used for a single task
 * The foundation of tool-using AI agents
 
 ---
@@ -226,20 +289,31 @@ This project was built to understand the fundamentals of **Agentic AI and LLM To
 ## 🔄 Current Architecture
 
 ```text
-User Query
-    ↓
-Gemini LLM
-    ↓
-Tool Selection
-    ↓
-Python Tool
-    ↓
-Tool Result
-    ↓
-Gemini LLM
-    ↓
-Final Response
+                    User Query
+                        │
+                        ▼
+                   Gemini LLM
+                        │
+                        ▼
+                Tool Selection
+                        │
+             ┌──────────┼──────────┐
+             ▼          ▼          ▼
+        Calculator  Student Info  Attendance
+             │          │          │
+             └──────────┼──────────┘
+                        │
+                        ▼
+                   Tool Result
+                        │
+                        ▼
+                   Gemini LLM
+                        │
+                        ▼
+                  Final Response
 ```
+
+The current implementation uses the **Google GenAI SDK's automatic function-calling capability**, rather than manually implementing the complete tool-calling loop.
 
 ---
 
@@ -249,6 +323,4 @@ Final Response
 
 B.Tech Graduate, IIT Jammu
 
-[GitHub](https://github.com/Sourabh-Prajapat)
-
----
+## [GitHub](https://github.com/Sourabh-Prajapat)

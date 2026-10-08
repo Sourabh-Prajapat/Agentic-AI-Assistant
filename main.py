@@ -1,9 +1,13 @@
 from google import genai
 
+
 client = genai.Client()
 
 
+# -----------------------------
 # Student data
+# -----------------------------
+
 students = {
     "Sourabh": {
         "branch": "Mechanical Engineering",
@@ -23,7 +27,10 @@ students = {
 }
 
 
+# -----------------------------
 # Tool 1: Calculator
+# -----------------------------
+
 def calculator(a: float, b: float, operation: str) -> float:
     """Perform a mathematical operation on two numbers."""
 
@@ -42,11 +49,13 @@ def calculator(a: float, b: float, operation: str) -> float:
 
         return a / b
 
-    else:
-        return 0
+    return 0
 
 
+# -----------------------------
 # Tool 2: Student information
+# -----------------------------
+
 def get_student_info(name: str):
     """Get basic information about a student."""
 
@@ -56,7 +65,10 @@ def get_student_info(name: str):
     return {"error": "Student not found"}
 
 
+# -----------------------------
 # Tool 3: Student attendance
+# -----------------------------
+
 def get_student_attendance(name: str):
     """Get the attendance percentage of a student."""
 
@@ -66,23 +78,99 @@ def get_student_attendance(name: str):
     return {"error": "Student not found"}
 
 
-# User question
-question = "Tell me about Sourabh?"
+# -----------------------------
+# Tool registry
+# -----------------------------
+
+tool_registry = {
+    "calculator": calculator,
+    "get_student_info": get_student_info,
+    "get_student_attendance": get_student_attendance
+}
 
 
-# Send request to Gemini
-response = client.models.generate_content(
-    model="gemini-3.5-flash",
-    contents=question,
+# -----------------------------
+# Tools available to Gemini
+# -----------------------------
+
+tools = [
+    calculator,
+    get_student_info,
+    get_student_attendance
+]
+
+
+# -----------------------------
+# Create chat
+# -----------------------------
+
+chat = client.chats.create(
+    model="gemini-2.5-flash",
     config={
-        "tools": [
-            calculator,
-            get_student_info,
-            get_student_attendance
-        ]
+        "tools": tools
     }
 )
 
 
-# Final response
+# -----------------------------
+# User question
+# -----------------------------
+
+question = "What is Sourabh's attendance and how much does he need to reach 90%?"
+
+
+# -----------------------------
+# Send question to Gemini
+# -----------------------------
+
+response = chat.send_message(question)
+
+
+# -----------------------------
+# Multi-tool execution loop
+# -----------------------------
+
+while response.function_calls:
+
+    for function_call in response.function_calls:
+
+        tool_name = function_call.name
+        tool_args = function_call.args
+
+        print(f"\nTool called: {tool_name}")
+        print(f"Arguments: {tool_args}")
+
+        # Find tool dynamically
+        tool = tool_registry.get(tool_name)
+
+        if tool:
+
+            result = tool(**tool_args)
+
+        else:
+
+            result = {
+                "error": f"Tool '{tool_name}' not found"
+            }
+
+        print(f"Tool result: {result}")
+
+        # Send tool result back to Gemini
+        response = chat.send_message(
+            {
+                "function_response": {
+                    "name": tool_name,
+                    "response": {
+                        "result": result
+                    }
+                }
+            }
+        )
+
+
+# -----------------------------
+# Final answer
+# -----------------------------
+
+print("\nFinal Answer:")
 print(response.text)
